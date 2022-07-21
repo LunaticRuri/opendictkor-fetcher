@@ -12,7 +12,7 @@ setup(
     long_description=long_desc,
     long_description_content_type="text/markdown",
     url='https://github.com/LunaticRuri/opendictkor-fetcher',
-    install_requires=["beautifulsoup4", "tqdm", 'requests', 'urllib3'],
+    install_requires=["beautifulsoup4", "lxml", "tqdm", 'requests', 'urllib3'],
     packages=find_packages(),
     python_requires='>=3',
     classifiers=[
