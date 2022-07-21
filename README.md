@@ -1,6 +1,6 @@
 # opendictkor-fetcher
 
-국립국어원에서 제공하는 오픈 사전 우리말샘(https://opendict.korean.go.kr/) 크롤러
+개인 사용 목적으로 만든 국립국어원에서 제공하는 오픈 사전 우리말샘(https://opendict.korean.go.kr/) 크롤러
 
 2022/7/21 기준이라 이후에는 정상 작동하지 않을 수 있음
 
@@ -19,6 +19,21 @@ dist 폴더의 wheel 파일 받아
 ```shell
 $ pip install opendictkor_fetcher-1.0-py3-none-any.whl
 ```
+
+## 사용 예시
+
+```python
+import odk
+
+od = odk.OpenDictFetcher()
+
+sn_list = od.search_sense_no('누리')
+
+print(od.get_data_by_sense_no('117655'))
+
+od.sense_downloader(sn_list,'output.json')
+```
+
 
 ## 데이터 설명
 - 'sense_no': 우리말샘에서 사용되는 구분 id
@@ -41,5 +56,5 @@ $ pip install opendictkor_fetcher-1.0-py3-none-any.whl
 - 'hand_no': 한국 수어 사전에서 사용되는 구분 id
 - 'related': 연관어(상위어, 본말/준말, 비슷한말, 참고 어휘, 하위어, 낮춤말, 반대말, 높임말)
 
-## 사용
+
 
