@@ -22,12 +22,14 @@ $ pip install opendictkor_fetcher-1.0-py3-none-any.whl
 
 ## 사용 예시
 
+코드 참조
+
 ```python
 import odk
 
 od = odk.OpenDictFetcher()
 
-sn_list = od.search_sense_no('컴큐터')
+sn_list = od.search_sense_no('컴퓨터')
 print(sn_list)
 
 print(od.get_data_by_sense_no('547591'))
