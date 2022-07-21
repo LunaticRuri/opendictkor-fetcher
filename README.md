@@ -27,9 +27,10 @@ import odk
 
 od = odk.OpenDictFetcher()
 
-sn_list = od.search_sense_no('누리')
+sn_list = od.search_sense_no('컴큐터')
+print(sn_list)
 
-print(od.get_data_by_sense_no('117655'))
+print(od.get_data_by_sense_no('547591'))
 
 od.sense_downloader(sn_list,'output.json')
 ```
