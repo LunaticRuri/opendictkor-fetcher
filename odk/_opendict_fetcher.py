@@ -70,7 +70,7 @@ class OpenDictFetcher:
     @staticmethod
     def get_soup_by_url(url):
         try:
-            r = requests.get(url, verify=False, timeout=5)
+            r = requests.get(url, verify=False, timeout=20)
         except Exception as e:
             print('Network ERR: ', e)
             return False
@@ -257,7 +257,7 @@ class OpenDictFetcher:
                     output_dict['pattern'] = raw_pos_pattern[1][1:]
 
             # 학명
-            elif re.search(r'(학,과,강,목)명', head_info_type) and self.request_data['sci_name']:
+            elif re.search(r'[학과강목]명', head_info_type) and self.request_data['sci_name']:
                 output_dict['sci_name'] = elem.select_one('span').text
 
             # 예외 처리
