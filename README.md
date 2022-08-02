@@ -34,7 +34,7 @@ print(sn_list)
 
 print(od.get_data_by_sense_no('547591'))
 
-od.sense_downloader(sn_list,'output.json')
+od.sense_downloader(sn_list, output_file='output.json')
 ```
 
 
