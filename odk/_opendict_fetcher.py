@@ -19,6 +19,10 @@ class OpenDictFetcher:
     DEFINITION = 3
     USAGE = 4
 
+    SUCCESS = 0
+    BLANK_ERR = 1
+    NETWORK_ERR = 2
+
     dictionary_url = "https://opendict.korean.go.kr/dictionary/view?sense_no="
     search_url = "https://opendict.korean.go.kr/search/searchResult?"
 
@@ -66,7 +70,7 @@ class OpenDictFetcher:
     @staticmethod
     def get_soup_by_url(url):
         try:
-            r = requests.get(url, verify=False)
+            r = requests.get(url, verify=False, timeout=5)
         except Exception as e:
             print('Network ERR: ', e)
             return False
@@ -123,7 +127,7 @@ class OpenDictFetcher:
 
             try:
                 search_result = soup.find('div', {'class': 'search_result'}).find_all('a')
-                sense_no_list.extend([re.findall("\d+", elem.attrs['href'])[0] for elem in search_result])
+                sense_no_list.extend([re.findall(r"\d+", elem.attrs['href'])[0] for elem in search_result])
             except AttributeError:
                 sense_no_list = []
 
@@ -147,7 +151,7 @@ class OpenDictFetcher:
 
         if not soup:
             print(f'where sense_no: {sense_no}')
-            return False
+            return OpenDictFetcher.NETWORK_ERR, sense_no
 
         # 표제어
         try:
@@ -155,8 +159,8 @@ class OpenDictFetcher:
             if not target_word:
                 raise Exception
         except (AttributeError, Exception):
-            print(f'Blank page error where sense_no: {sense_no}')
-            return False
+            # print(f'Blank page error where sense_no: {sense_no}')
+            return OpenDictFetcher.BLANK_ERR, sense_no
 
         else:
             if self.request_data['word']:
@@ -167,7 +171,7 @@ class OpenDictFetcher:
         # word_no
         if self.request_data['word_no']:
             try:
-                output_dict['word_no'] = re.findall("\d+", soup.select_one('a.btn_edit')['href'])[0]
+                output_dict['word_no'] = re.findall(r"\d+", soup.select_one('a.btn_edit')['href'])[0]
             except (TypeError, AttributeError):
                 # 표준국어대사전 등재 X or 관용어구
                 output_dict['word_no'] = ''
@@ -253,7 +257,7 @@ class OpenDictFetcher:
                     output_dict['pattern'] = raw_pos_pattern[1][1:]
 
             # 학명
-            elif head_info_type == '학명' and self.request_data['sci_name']:
+            elif re.search(r'(학,과,강,목)명', head_info_type) and self.request_data['sci_name']:
                 output_dict['sci_name'] = elem.select_one('span').text
 
             # 예외 처리
@@ -282,14 +286,14 @@ class OpenDictFetcher:
         # 수화(한국 수어 사전 번호)
         if self.request_data['hand_no']:
             try:
-                output_dict['hand_no'] = re.findall("\d+", soup.select_one('a.floatR.btn_sm.btn_blank')['onclick'])[0]
+                output_dict['hand_no'] = re.findall(r"\d+", soup.select_one('a.floatR.btn_sm.btn_blank')['onclick'])[0]
             except TypeError:
                 pass
 
         # 연관 단어
         if self.request_data['related']:
             try:
-                json_str = re.sub(',\"group\":\"(\w|\s)*\"', '', soup.select_one('div#wordmap_json_str').text)
+                json_str = re.sub(r',\"group\":\"(\w|\s)*\"', '', soup.select_one('div#wordmap_json_str').text)
             except AttributeError:
                 pass
             else:
@@ -310,14 +314,15 @@ class OpenDictFetcher:
             if rq not in output_dict:
                 output_dict[rq] = ''
 
-        return output_dict
+        return OpenDictFetcher.SUCCESS, output_dict
 
-    def sense_downloader(self, sense_no_list, thread=None, file=None):
+    def sense_downloader(self, sense_no_list, thread=None, output_file=None, err_file=None):
         """
         멀티쓰레딩 이용해 주어진 sense_no 들에 해당하는 사전 데이터를 파일 또는 리스트 형태로 반환
         :param sense_no_list: 가져올 단어의 sense_no가 담긴 리스트
         :param thread: 멀티쓰레딩시 사용할 최대 쓰레드 개수. Default=Cpu_count()
-        :param file: 출력할 파일 주소. 주어지지 않으면 list of dictionaries 반환
+        :param output_file: 출력할 파일 주소. 주어지지 않으면 list of dictionaries 반환
+        :param err_file: 네트워크 에러 단어 목록 파일 주어지지 않으면 파일 출력 없음
         :return:
         """
         if thread is None:
@@ -336,12 +341,22 @@ class OpenDictFetcher:
                 output.append(f.result())
 
         # process evaluation
-        failed_count = len([x for x in output if not x])
+        dict_output = [elem[1] for elem in output if elem[0] == OpenDictFetcher.SUCCESS]
+        blank_err_output = [elem[1] for elem in output if elem[0] == OpenDictFetcher.BLANK_ERR]
+        network_err_output = [elem[1] for elem in output if elem[0] == OpenDictFetcher.NETWORK_ERR]
 
-        print(f"END! {total_len - failed_count}/{total_len} -> {((total_len - failed_count) / total_len) * 100}%")
+        print(f"END! {len(dict_output)}/{total_len} -> {(len(dict_output) / total_len) * 100}%")
 
-        if file is None:
-            return output
+        if err_file:
+            with open(err_file, 'a+') as ef:
+                for line in blank_err_output:
+                    ef.write(f"B {line}\n")
+                for line in network_err_output:
+                    ef.write(f"N {line}\n")
+
+        if output_file is None:
+            return dict_output
         else:
-            with open(file, 'w') as f:
-                json.dump(output, f, ensure_ascii=False)
+            with open(output_file, 'w') as f:
+                json.dump(dict_output, f, ensure_ascii=False)
+
