@@ -3,4 +3,3 @@ requests
 lxml
 tqdm
 urllib3
-

@@ -97,8 +97,7 @@ class OpenDictFetcher:
             raise Exception('Check content_attr')
 
         wm = '&wordMatch=Y' if match and dict_type == OpenDictFetcher.VOCABULARY else ''
-        query_url = OpenDictFetcher.search_url + \
-                    f"query={query_str}&dicType={dict_type}{wm}&currentPage=1&rowsperPage=50" + content_attr
+        query_url = OpenDictFetcher.search_url + f"query={query_str}&dicType={dict_type}{wm}&currentPage=1&rowsperPage=50" + content_attr
 
         soup = OpenDictFetcher.get_soup_by_url(query_url)
         if not soup:
@@ -145,6 +144,7 @@ class OpenDictFetcher:
             output_dict['sense_no'] = sense_no
 
         soup = OpenDictFetcher.get_soup_by_url(OpenDictFetcher.dictionary_url + sense_no)
+
         if not soup:
             print(f'where sense_no: {sense_no}')
             return False
@@ -152,9 +152,12 @@ class OpenDictFetcher:
         # 표제어
         try:
             target_word = soup.select_one('span.word_head').text
-        except AttributeError:
+            if not target_word:
+                raise Exception
+        except (AttributeError, Exception):
             print(f'Blank page error where sense_no: {sense_no}')
             return False
+
         else:
             if self.request_data['word']:
                 output_dict['word'] = target_word.replace('-', '')
@@ -165,7 +168,7 @@ class OpenDictFetcher:
         if self.request_data['word_no']:
             try:
                 output_dict['word_no'] = re.findall("\d+", soup.select_one('a.btn_edit')['href'])[0]
-            except AttributeError:
+            except (TypeError, AttributeError):
                 # 표준국어대사전 등재 X or 관용어구
                 output_dict['word_no'] = ''
 
