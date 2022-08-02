@@ -72,12 +72,13 @@ class OpenDictFetcher:
         try:
             r = requests.get(url, verify=False, timeout=20)
         except Exception as e:
-            print('Network ERR: ', e)
+            err_msg = f'Network ERR: {e}'
+            # print(err_msg)
             return False
         else:
             soup = BeautifulSoup(r.text, "lxml")
             # optional - 차단 가능성 있음!!
-            time.sleep(0.5)
+            time.sleep(0.3)
             return soup
 
     def search_sense_no(self, query_str, dict_type=1, match=True, user_content_mode=0):
@@ -150,7 +151,7 @@ class OpenDictFetcher:
         soup = OpenDictFetcher.get_soup_by_url(OpenDictFetcher.dictionary_url + sense_no)
 
         if not soup:
-            print(f'where sense_no: {sense_no}')
+            # print(f'where sense_no: {sense_no}')
             return OpenDictFetcher.NETWORK_ERR, sense_no
 
         # 표제어
