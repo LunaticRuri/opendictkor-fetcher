@@ -257,8 +257,8 @@ class OpenDictFetcher:
                 if self.request_data['pattern']:
                     output_dict['pattern'] = raw_pos_pattern[1][1:]
 
-            # 학명
-            elif re.search(r'[학과강목]명', head_info_type) and self.request_data['sci_name']:
+            # 학명~
+            elif re.search(r'[학과목강문]명', head_info_type) and self.request_data['sci_name']:
                 output_dict['sci_name'] = elem.select_one('span').text
 
             # 예외 처리
