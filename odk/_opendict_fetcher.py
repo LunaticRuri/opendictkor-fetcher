@@ -78,7 +78,7 @@ class OpenDictFetcher:
         else:
             soup = BeautifulSoup(r.text, "lxml")
             # optional - 차단 가능성 있음!!
-            time.sleep(0.3)
+            time.sleep(0.1)
             return soup
 
     def search_sense_no(self, query_str, dict_type=1, match=True, user_content_mode=0):
