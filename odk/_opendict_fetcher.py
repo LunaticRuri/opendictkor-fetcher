@@ -248,8 +248,10 @@ class OpenDictFetcher:
             # 품사
             elif head_info_type == '품사' and self.request_data['pos']:
                 output_dict['pos'] = re.compile('[^ㄱ-ㅣ가-힣]+').sub('', elem.select_one('span').text)
-
-            # 품사/문형 - 용언?
+            # 문형
+            elif head_info_type == '문형' and self.request_data['pattern']:
+                output_dict['pattern'] = re.compile('[^ㄱ-ㅣ가-힣]+').sub('', elem.select_one('span').text)
+            # 품사/문형
             elif head_info_type == '품사/문형':
                 raw_pos_pattern = elem.select_one('span').text.split('」')
                 if self.request_data['pos']:
@@ -313,7 +315,7 @@ class OpenDictFetcher:
         # Check null values in output_data
         for rq in self.request_data.keys():
             if rq not in output_dict:
-                output_dict[rq] = ''
+                output_dict[rq] = ""
 
         return OpenDictFetcher.SUCCESS, output_dict
 
